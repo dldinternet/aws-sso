@@ -62,15 +62,7 @@ def __get_or_refresh_token(url, username, password, secrets, config_dir, force_r
         secrets.set('authn-expiry-date', str(expiry_date))
     return token
 
-def configure(args):
-    profile = args.profile
-    cfg = Configuration()
-    params = config_override(cfg.config, profile, args)
-
-    render = None
-    if bool(os.getenv('AWSSSO_NO_CONSOLE', False)):
-        render = NonInteractiveRender(theme=Bland())
-
+def configure(args, profile=None, cfg=None, params=None, render=None):
     try:
         inquirer.prompt([
             inquirer.Text('url', message='URL', default=params.get('url', ''), validate=validate_url, show_default=bool(os.getenv('AWSSSO_NO_CONSOLE', False))),
@@ -110,18 +102,9 @@ def configure(args):
         sys.exit(1)
 
 
-def login(args):
-    profile = args.profile
-    cfg = Configuration()
-
+def login(args, profile=None, cfg=None, params=None, render=None):
     if profile not in cfg.config:
         sys.exit(f'profile {profile} does not exist, use "awssso configure -p {profile}" to create it')
-
-    render = None
-    if bool(os.getenv('AWSSSO_NO_CONSOLE', False)):
-        render = NonInteractiveRender(theme=Bland())
-
-    params = config_override(cfg.config, profile, args)
     aws_profile = params.get('aws_profile', profile)
     secrets = SecretsManager(params.get('username'), params.get('url'))
     password = secrets.get('credentials')
@@ -231,10 +214,17 @@ def main():
 
     args = parser.parse_args()
 
+    render = None
+    if bool(os.getenv('AWSSSO_NO_CONSOLE', False)):
+        render = NonInteractiveRender(theme=Bland())
+
     try:
+        cfg = Configuration()
+        params = config_override(cfg.config, args.profile, args)
+
         func = args.func
         if callable(func):
-            func(args)
+            func(args, profile=args.profile, cfg=cfg, params=params, render=render)
     except AttributeError as ae:
         traceback.print_exception(AttributeError, ae, ae.__traceback__)
         parser.print_help(sys.stderr)
