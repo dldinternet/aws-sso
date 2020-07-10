@@ -1,0 +1,10 @@
+pip
+bump2version
+wheel
+pip
+twine
+pytest
+pytest-runner
+selenium>=3.14.0,<4.0.0
+
+-e .

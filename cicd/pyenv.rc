@@ -1,0 +1,83 @@
+#!/usr/bin/env sh
+
+test -z "$xtrace" && xtrace=$(shopt -o xtrace >/dev/null; echo $?)
+
+echo PyEnv
+test -f .python-version || { echo "ERROR: pyenv.rc depends on existence of a .python-version in `pwd`"; exit 1; }
+export PYENV_VENV=$(cat .python-version 2>/dev/null)
+test -z "$PYENV_VENV" && exit 1 || true
+
+set +x
+cd ~
+pwd
+test 0 -eq $xtrace && set -x
+
+export PYENV_PYTHON_VERSION=$(cd ~ >/dev/null 2>&1; python -V | cut -d ' ' -f 2 ; cd - >/dev/null 2>&1)
+
+# If it does not exist then make it
+if test -z "$(pyenv virtualenvs --bare 2>/dev/null | egrep -e "^$PYENV_VENV\$" 2>/dev/null)" ; then
+  echo "$PYENV_VENV does not exist!"
+  # Let's see if it is an alias
+  if test -z "$(echo $PYENV_VENV | egrep -e "/" 2>/dev/null)" ; then
+    echo "$PYENV_VENV is an alias!"
+  else
+    export PYENV_PYTHON_VERSION=${PYENV_PYTHON_VERSION:-$(echo $PYENV_VENV | cut -d '/' -f 1)}
+    export PYENV_VENV=$(echo $PYENV_VENV | cut -d '/' -f 3)
+  fi
+  pyenv virtualenv $PYENV_PYTHON_VERSION $PYENV_VENV
+  # And ...
+  test ! -z "$(pyenv virtualenvs --bare 2>/dev/null | egrep -e "^$PYENV_VENV\$" 2>/dev/null)" || { echo "Could not create $PYENV_VENV"; pyenv virtualenvs --bare; exit 1; }
+fi
+
+export PYENV_VENV_DIR=$(pyenv root)/versions/$PYENV_PYTHON_VERSION/envs/$PYENV_VENV
+## Diagnostics on pyenv
+#test ! -z "$PYENV_PYTHON_VERSION" || exit 1 ;
+##set | egrep -e "^[A-Z]" | egrep -v -e "^[ \t]" ;
+#set | egrep -e '^(PYENV|VIRT|VENV)' | egrep -v -e '^[ \t]' ;
+#which pyenv
+#pyenv root
+#ls -al $(pyenv root)
+#ls -al $(pyenv root)/plugins
+#ls -al $(pyenv root)/versions
+#ls -al $(pyenv root)/versions/$PYENV_PYTHON_VERSION/
+#which python
+#which python3
+#which pip
+#which pip3
+
+echo If the Virtual Env is not there then this will gripe ...
+test -d $PYENV_VENV_DIR || pyenv virtualenv $PYENV_PYTHON_VERSION $PYENV_VENV ;
+#echo Activate $PYENV_VENV in $PYENV_VENV_DIR
+#test -d $PYENV_VENV_DIR -a -z "$(pyenv version | grep $PYENV_VENV 2>/dev/null)" && pyenv activate $PYENV_VENV || true;
+#echo pyenv versions
+#pyenv versions
+#echo pyenv virtualenvs
+#pyenv virtualenvs
+
+# Back to where the venv matters
+set +x
+cd $CI_PROJECT_DIR
+pwd
+test 0 -eq $xtrace && set -x
+
+if test ! -f .python-version; then
+  if test -z "$(echo $PYENV_VENV | egrep -e "/" 2>/dev/null)" ; then
+    echo "$PYENV_PYTHON_VERSION/envs/$PYENV_VENV" >.python-version
+  else
+    echo "$PYENV_VENV" >.python-version
+  fi
+fi
+
+# Diagnostics
+#echo pwd
+#pwd
+echo pyenv version BEFORE
+pyenv version
+#echo pip list
+pip list
+
+# Diagnostics
+set | egrep -e '^(PYENV|VIRT|VENV)' | egrep -v -e '^[ \t]'
+test ! -z "$(pyenv version | grep $PYENV_VENV 2>/dev/null)" || pyenv activate $PYENV_VENV || true
+echo pyenv version ACTIVE
+pyenv version

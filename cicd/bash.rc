@@ -1,0 +1,6 @@
+#!sh
+
+type shopt || {
+  cp cicd/shopt /usr/local/bin
+  chmod +x /usr/local/bin/shopt
+}

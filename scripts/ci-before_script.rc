@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+if test -z "$CICD_SHARED_CI_BEFORE_SCRIPT_INCLUDED" ; then
+here=cdk-helper
+echo $here/scripts/ci-before_script.rc
+
+export CI_PROJECT_DIR=${CI_PROJECT_DIR:-$PWD}
+
+export DOCKER_DRIVER=overlay2
+export DOCKER_HOST="unix:///var/run/docker.sock"
+export DOCKERFILE_TEMPLATE=template.Dockerfile
+export REPO_PARTS='.chef config helpers scripts appspec.yml'
+export RVM_RUBY_GEMSET=ruby-2.6.6@$here
+export CI_TEMPLATES_DIR=automation/templates
+
+export VERSION=$(cat VERSION 2>/dev/null)
+export APP_ID=CDKHelper
+export PACKAGE_NAME=$APP_ID-$VERSION
+export PACKAGE_DIR=cdk_helper
+export PACKAGE_DESCRIPTION='CDK Helper'
+export PACKAGE_ARTIFACT_FILE=${PACKAGE_ARTIFACT_FILE:-$LOCAL_BUILD_DIR/$PACKAGE_NAME.zip}
+
+test -f /codebuild/output/tmp/env.sh && source /codebuild/output/tmp/env.sh
+
+. $CICD_SHARED_DIR/scripts/ci_reset_environment.sh
+
+. $CICD_SHARED_DIR/scripts/ansi-colors.rc
+
+#set -x
+#export xtrace=0
+
+#echo Set up shell environment ...
+test -z "$xtrace" && export xtrace=$(shopt -o xtrace >/dev/null; echo $?)
+export NO_PROFILE=yes
+test 0 -eq $xtrace && set +x
+# This resets the PATH
+if test -z "$RC_DIR" -a -z "$CI_JOB_ID"; then
+  yellow WARNING: PATH reset in $here/scripts/ci-before_script.rc
+  set +x
+  test -f ~/.profile && . ~/.profile
+  test 0 -eq $xtrace && set -x
+#  exit 1
+#  tput setaf 7
+#  white_on_black 'white on black'
+#  echo Now?
+#  tput setaf 7
+#  echo Now?
+#  tput setaf 7
+#  red RED
+#  copper COPPER
+#  white WHITE
+#  echo Bland
+#  exit 1
+fi
+
+if test ! -z "$RC_DIR" ; then
+  set +x
+  . ${RC_DIR}/python.rc >/dev/null 2>&1
+  test 0 -ne $? && exit 1
+  . ${RC_DIR}/rvm.rc >/dev/null 2>&1
+  test 0 -ne $? && exit 1
+  cd .
+  test 0 -eq $xtrace && set -x
+fi
+
+#set -x
+#export xtrace=0
+
+. $CICD_SHARED_DIR/scripts/git-submodule.rc
+. $CICD_SHARED_DIR/scripts/os-update.rc
+. $CICD_SHARED_DIR/scripts/shell-env.rc
+. $CICD_SHARED_DIR/scripts/aws-env.rc
+. $CICD_SHARED_DIR/scripts/faro.rc
+. $CICD_SHARED_DIR/scripts/gitlab-runners.rc
+. $CICD_SHARED_DIR/scripts/pathmunge.rc
+. $CICD_SHARED_DIR/scripts/rvm.rc
+
+#set -x
+#export xtrace=0
+
+yellow BUILDER_IMAGE_VERSION was ["${BUILDER_IMAGE_VERSION}"]
+_version=''
+if test -f .bumpversion.cfg ; then
+  _version=$(grep -e 'current_version[ \t]*=[ \t]*' .bumpversion.cfg | head -1 | cut -d '=' -f 2 | sed "s/[\"']//g" | sed "s/ *//g")
+else
+  test -f VERSION && _version=$(cat VERSION)
+fi
+if test -z "$_version" ; then
+  red Cannot determine VERSION
+  pwd
+  ls -a
+  exit 1
+fi
+export VERSION=$_version
+export BUILDER_IMAGE_VERSION=$VERSION
+green BUILDER_IMAGE_VERSION now "${BUILDER_IMAGE_VERSION}"
+export BUILD_VERSION_NAME="${VERSION}.${CI_BUILD_ID}"
+# export BUILD_DAY_MMR_NAME="$(expr substr ${BUILD_VERSION_NAME} 1 5)"
+export VERSION_NAME="${VERSION}"
+
+export ENVIRONMENT_KEY=${ENVIRONMENT_KEY:-DEV}
+export BUCKET_NAME=${BUCKET_NAME:-roadsync-tools-sam-cli-managed-default-samclisourcebucket}
+export AWS_REGISTRY_ID='496035877404'
+export AWS_REGISTRY_IDS="$AWS_REGISTRY_ID"
+export REPOSITORY_HOSTNAME="$AWS_REGISTRY_ID.dkr.ecr.us-east-1.amazonaws.com"
+export PYTHON_VERSION=3
+export RUBY_MAJOR_VERSION=2
+export AWS_CLI_VERSION_MAJOR=2
+
+which docker 2>/dev/null >&2
+if test 0 -ne $? ; then
+  export PATH=$PATH:/usr/local/bin
+fi
+
+export CICD_SHARED_CI_BEFORE_SCRIPT_INCLUDED=yes
+fi

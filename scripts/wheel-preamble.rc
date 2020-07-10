@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+
+# This does not work without BASH
+if test -z "${BASH_VERSION}" ; then
+  /usr/bin/env bash "$0" $*
+  exit $?
+fi
+
+if test $((0 + $(echo ${BASH_VERSION:-0} | cut -d . -f 1) )) -lt 4 ; then
+  echo "Your Bash($BASH) version is ${BASH_VERSION:-0} and you need >= 4.0.0"
+  if test -f /usr/local/bin/bash ; then
+    /usr/local/bin/bash "$0" $*
+    exit $?
+  fi
+fi
+
+export KEEP_BUILD_DIR=yes
+export DISABLE_TAG_VERSION=yes
+
+#export AUTO_BUMP2VERSION=No
+export nounset=$(shopt -o nounset >/dev/null; echo $?)
+set +o nounset
+shopt -o errexit >/dev/null
+export errexit=$?
+set +o errexit
+
+export CI_PROJECT_DIR=${CI_PROJECT_DIR:-$PWD}
+export CI_PROJECT_SCRIPTS_DIR=${CI_PROJECT_SCRIPTS_DIR:-$CI_PROJECT_DIR/scripts}
+source "$CI_PROJECT_SCRIPTS_DIR/find_shared_ci.sh"
+RC=$? ; test 0 -eq $RC || exit $RC
+
+source "$CI_PROJECT_SCRIPTS_DIR/ci-before_script.rc"
+RC=$? ; test 0 -eq $RC || exit $RC
+
+# Now prepare to make another wheel for the layer
+# which will include the layer archive itself
+# This has a venv
+cd $LOCAL_BUILD_DIR
+copper PWD: `pwd`
+
+#pyenv local system
+#pyenv version
+test -f venv/bin/activate || { red venv/bin/activate; exit 1; }
+yellow "!!! DON'T use .python-version here: $LOCAL_BUILD_DIR !!!" # This is important because if it says 'system' we will still have shims!!!
+rm $LOCAL_BUILD_DIR/.python-version 2>/dev/null || true
+. deactivate 2>/dev/null || true
+. venv/bin/activate
+which python
+#pip list
+#cyan $PATH
+

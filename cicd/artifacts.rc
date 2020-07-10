@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+
+get_pip_artifact() {
+  name=${1:-cicd-shared}
+  options=${2:-'-q'}
+  dest=${3:-$LOCAL_BUILD_DIR}
+  tmp=${4:-$dest}
+
+  test -z "$dest" && { echo "LOCAL_BUILD_DIR? If you want it here: `pwd` then set LOCAL_BUILD_DIR=<here>"; test ! -z "$CI_INTERACTIVE" && read x ; exit 1; }
+  echo Looking for and removing existing $tmp/$(echo $name | sed 's/-/_/g')*.whl ...
+  for whl in $(ls $tmp/$(echo $name | sed 's/-/_/g')*.whl 2>/dev/null) ; do
+    rm $whl
+  done
+  pip download $options $name --dest $tmp --no-cache-dir --no-deps --index-url $PIP_REPOSITORY_URL || {
+    PAGER= aws codeartifact login --tool pip --repository $ARTIFACT_REPOSITORY_NAME --domain $ARTIFACT_REPOSITORY_DOMAIN --domain-owner $AWS_ACCOUNT_ID;
+    pip download -vvv $name --no-cache-dir --dest $tmp --no-deps;
+    rm -f ~/.pypirc;
+    rm -fr ~/.config/pip/pip.conf;
+  }
+  wheel=$(ls  $tmp/$(echo $name | sed 's/-/_/g')*.whl 2>/dev/null)
+  test -z "$wheel" && { echo "This $name wheel is not turning"; test ! -z "$CI_INTERACTIVE" && read x ; exit 1; }
+  test -z "$CI_ARTIFACT_UNZIP" && return 0 || true
+  unzip -n $wheel -d $dest/$name;
+  return $?
+}
+
+push_pip_artifact() {
+  whl=$1
+  twine upload --repository-url $TWINE_REPOSITORY_URL -u $TWINE_USER -p $TWINE_PASSWORD --verbose $whl
+}
+
+push_pip_artifact_all() {
+  for whl in $(ls $LOCAL_DIST_DIR/*.whl) ; do
+    #pkg=$(basename $whl)
+    #copper "twine upload --repository-url $TWINE_REPOSITORY_URL -u $TWINE_USER -p $TWINE_PASSWORD --verbose $whl"
+    push_pip_artifact $whl
+  done
+
+}
+
+test 0 -eq 0

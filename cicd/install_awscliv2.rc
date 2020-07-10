@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+echo We need AWSCLIv2
+
+# [2020-06-25 Christo] PyEnv shims are now officially getting on my last nerve!
+rm -f $(pyenv root 2>/dev/null)/shims/aws 2>/dev/null || true
+
+test ! -z "$(which aws | egrep shims 2>/dev/null)" && rm -f $(which aws) && pip uninstall awscli -y || true
+if test -z "$(aws --version | egrep -e '^aws-cli/2' 2>/dev/null)" ; then
+  test -f /tmp/awscliv2.zip || curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+  test -d /tmp/awscliv2 && rm -fr /tmp/awscliv2
+  unzip /tmp/awscliv2.zip -d /tmp/awscliv2 >/tmp/awscliv2.log
+  /tmp/awscliv2/aws/install --bin-dir /usr/local/bin
+fi
+aws --version
+

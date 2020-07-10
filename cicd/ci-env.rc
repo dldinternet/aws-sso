@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+export CI_PROJECT_DIR=${CODEBUILD_SRC_DIR:-`pwd`}
+export CI_JOB_ID=${CODEBUILD_BUILD_ID:-0}
+export LOCAL_BUILD_DIR=${LOCAL_BUILD_DIR:-$CI_PROJECT_DIR/build}
+export LOCAL_DIST_DIR=${LOCAL_DIST_DIR:-$LOCAL_BUILD_DIR/dist}
+export ARTIFACT_REPOSITORY_NAME=roadsync
+export ARTIFACT_REPOSITORY_DOMAIN=artifacts
+export ARTIFACT_REPOSITORY_REPOSITORY=${ARTIFACT_REPOSITORY_REPOSITORY:-roadsync}
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account 2>/dev/null)
+test -z "$AWS_ACCOUNT_ID" && { echo "Do you have AWS credentials here?"; test ! -z "$CI_INTERACTIVE" && read x ; exit 1; }
+export TWINE_USER=aws
+# Tools account id may NOT be AWS_ACCOUNT_ID ...
+export TWINE_REPOSITORY_URL=https://artifacts-496035877404.d.codeartifact.us-east-1.amazonaws.com/pypi/$ARTIFACT_REPOSITORY_REPOSITORY
+# aws codeartifact get-authorization-token --domain $ARTIFACT_REPOSITORY_DOMAIN --domain-owner $AWS_ACCOUNT_ID --query authorizationToken
+export TWINE_PASSWORD=$(aws codeartifact get-authorization-token --domain $ARTIFACT_REPOSITORY_DOMAIN --domain-owner $AWS_ACCOUNT_ID --query authorizationToken --output text)
+export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain $ARTIFACT_REPOSITORY_DOMAIN --domain-owner $AWS_ACCOUNT_ID --query authorizationToken --output text`
+export PIP_REPOSITORY_URL=https://aws:$CODEARTIFACT_AUTH_TOKEN@artifacts-496035877404.d.codeartifact.us-east-1.amazonaws.com/pypi/$ARTIFACT_REPOSITORY_REPOSITORY/simple/
+export SHARED_CI_ROOT_DIR=$LOCAL_BUILD_DIR
+#set | egrep -e '^[A-Z]'
+export CI_INTERACTIVE=${CI_INTERACTIVE:-}

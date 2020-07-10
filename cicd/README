@@ -1,0 +1,2 @@
+
+This directory contains helper for CI/CD pipeline that cannot be accessible in time via cicd-shared library

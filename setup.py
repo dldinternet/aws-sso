@@ -2,14 +2,12 @@
 from setuptools import find_packages, setup
 
 requires = [
-    'awscli>=1.16.10,<2.0.0',
     'boto3>=1.9.0,<2.0.0',
     'halo',
     'inquirer>=2.6.0,<3.0.0',
     'keyring>=19.0.0,<20.0.0',
     'requests',
     'secretstorage; platform_system == "Linux"',
-    'selenium>=3.14.0,<4.0.0',
 ]
 
 with open('README.md', 'r') as fh:

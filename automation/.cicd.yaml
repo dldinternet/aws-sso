@@ -1,0 +1,37 @@
+defaults:
+  region: us-east-1
+  domain: cicd.roadsync.com
+  siteBucketPrefix: roadsync
+  profile: RS{account.key}
+  domainPrefix: "{account.key}."
+  cicdAccount: tools
+accounts:
+  tools:
+    id: 496035877404
+    profile: RStools
+  dev:
+    id: 525882971645
+    profile: RSdev
+  test:
+    id: ''
+  prod:
+    id: 239012533903
+    domainPrefix: ''
+  stg:
+    id: 958387550208
+    profile: RSstage
+domainConfig:
+source:
+  repo:
+    arn: arn:aws:codecommit:us-east-1:496035877404:aws-sso
+    branch: develop
+    id: aws-sso
+tags:
+  Owner: christo.delange@roadsync.com
+  Env: DEV
+  Version: 1.1.2rev3
+  Application: Wheel
+  Team: Development
+  Product: aws-sso
+  Service: aws-sso
+layers:
