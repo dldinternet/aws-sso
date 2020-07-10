@@ -15,7 +15,7 @@ with open('README.md', 'r') as fh:
 
 setup_options = dict(
     name='awssso',
-    use_scm_version=True,
+    version='1.1.2rev3',
     description='Command Line tool for AWS SSO Credentials',
     long_description=long_description,
     long_description_content_type='text/markdown',
