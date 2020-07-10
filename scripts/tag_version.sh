@@ -19,6 +19,14 @@ RC=$? ; test 0 -eq $RC || exit $RC
 source "$CI_PROJECT_SCRIPTS_DIR/ci-before_script.rc"
 RC=$? ; test 0 -eq $RC || exit $RC
 
+
+function bump_version_rev {
+  bump2version --verbose --commit --tag rev --allow-dirty $*
+  return $?
+}
+
+test -z "$BUMP_VERSION_FUNC" && BUMP_VERSION_FUNC=bump_version_rev
+
 # Let's take care of our submodules ...
 if test -z "$CI_JOB_ID" ; then
   # Let's take care of our submodules ...
