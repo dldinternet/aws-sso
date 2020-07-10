@@ -17,7 +17,7 @@ if test $((0 + $(echo ${BASH_VERSION:-0} | cut -d . -f 1) )) -lt 4 ; then
     exit $?
   fi
 fi
-here=cdk-helper
+here=aws-sso
 echo $here/scripts/build_layer.sh
 if test -d ~/.aws -a -f ~/.aws/credentials -a -f ~/.aws/config ; then
   export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}

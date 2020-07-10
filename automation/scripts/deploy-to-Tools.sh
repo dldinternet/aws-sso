@@ -7,5 +7,5 @@ export CICD_ACCOUNT=tools
 
 . ../../../apis/blocklist-api/automation/scripts/cdk.sh deploy --profile RStools \
   --require-approval=never --verbose \
-  --parameters cdk-helper-cicd-cdk:CiCdArtifactStoreBucketArn=arn:aws:s3:::roadsync-tools-development-cicd-artifactstore-us-east-1 \
-  --parameters cdk-helper-cicd-cdk:CiCdArtifactStoreBucketName=roadsync-tools-development-cicd-artifactstore-us-east-1
+  --parameters aws-sso-cicd-cdk:CiCdArtifactStoreBucketArn=arn:aws:s3:::roadsync-tools-development-cicd-artifactstore-us-east-1 \
+  --parameters aws-sso-cicd-cdk:CiCdArtifactStoreBucketName=roadsync-tools-development-cicd-artifactstore-us-east-1

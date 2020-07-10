@@ -2,7 +2,7 @@
 
 # To debug uncomment this
 #set -x
-here=cdk-helper
+here=aws-sso
 echo $here/scripts/deploy-to-current-environment.sh
 
 export nounset=$(shopt -o nounset >/dev/null; echo $?)

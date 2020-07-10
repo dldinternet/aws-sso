@@ -22,7 +22,7 @@ if test $((0 + $(echo ${BASH_VERSION:-0} | cut -d . -f 1) )) -lt 4 ; then
     exit $?
   fi
 fi
-here=cdk-helper
+here=aws-sso
 echo $here/scripts/find_cicd-shared.sh
 
 export CI_PROJECT_DIR=${CI_PROJECT_DIR:-$PWD}

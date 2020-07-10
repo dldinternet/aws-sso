@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if test -z "$CICD_SHARED_CI_BEFORE_SCRIPT_INCLUDED" ; then
-here=cdk-helper
+here=aws-sso
 echo $here/scripts/ci-before_script.rc
 
 export CI_PROJECT_DIR=${CI_PROJECT_DIR:-$PWD}
