@@ -1,0 +1,135 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+      - |
+        echo Avoid .python-version by going to $HOME
+        cd ~
+        echo Env settings
+        . $CODEBUILD_SRC_DIR/cicd/ci-env.rc
+        echo Return to $CI_PROJECT_DIR
+        cd $CI_PROJECT_DIR
+
+        . cicd/bash.rc
+        . cicd/pyenv.rc
+        . cicd/install_awscliv2.rc
+
+        # We need awscli v2 above ...!
+        # [2020-07-03 Christo] Should be set in ci-env.rc ... export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+        test -f VERSION && export VERSION=$(cat VERSION) || false
+
+      - |
+        . cicd/artifacts.rc
+        
+        CI_ARTIFACT_UNZIP=yes get_pip_artifact cicd-shared -q $CI_PROJECT_DIR /tmp || exit 66
+        test -d $CI_PROJECT_DIR/cicd-shared || exit 66
+        ls -al $CI_PROJECT_DIR
+
+        # Just for local testing ... Or in case we ever get codecommit submodules to work right ...
+        test -e $CI_PROJECT_DIR/cicd-shared && export SHARED_CI_ROOT_DIR=$CI_PROJECT_DIR || true
+
+      - |
+        pyenv version
+
+        aws codeartifact login --tool pip --repository pypi --domain $ARTIFACT_REPOSITORY_DOMAIN --domain-owner $AWS_ACCOUNT_ID
+
+        pip install --upgrade pip
+        pip install -r requirements-dev.txt >/tmp/pip.requirements-dev.log || { RC=$? ; cat /tmp/pip.requirements-dev.log; exit $RC; }
+
+  pre_build:
+    commands:
+      - echo Build started on `date`
+      #      - |
+      #        echo "Clean out ./*.whl (if any)"
+      #        rm -f *.whl || true
+      #
+      #        echo Clean out $LOCAL_DIST_DIR
+      #        wheels="$(ls $LOCAL_DIST_DIR/*.whl $LOCAL_BUILD_DIR/*.zip 2>/dev/null)"
+      #        if test ! -z "$wheels" ; then
+      #          for whl in $wheels ; do
+      #            rm $whl
+      #          done
+      #        fi
+      #
+      #        echo Clean out $LOCAL_BUILD_DIR
+      #        zips="$(ls $LOCAL_BUILD_DIR/*.zip 2>/dev/null)"
+      #        if test ! -z "$zips" ; then
+      #          for zip in $zips ; do
+      #            rm $zip
+      #          done
+      #        fi
+      #        ls $LOCAL_DIST_DIR/*.whl $LOCAL_BUILD_DIR/*.zip || true
+
+      - |
+        if test -d $LOCAL_BUILD_DIR ; then
+          echo "!!!WARNING!!! $LOCAL_BUILD_DIR found!"
+          test -f $LOCAL_BUILD_DIR/.keep || {
+            test -d $LOCAL_BUILD_DIR/artifacts && ls -al $LOCAL_BUILD_DIR/artifacts || true;
+            rm -fr $LOCAL_BUILD_DIR;
+            mkdir -p $LOCAL_BUILD_DIR;
+          }
+        else
+            mkdir -p $LOCAL_BUILD_DIR;
+        fi
+      - |
+        test -f $LOCAL_BUILD_DIR/.keep -o -z "$(ls $LOCAL_BUILD_DIR 2>/dev/null)" || { ls $LOCAL_BUILD_DIR 2>/dev/null; exit 9;}
+        mkdir $LOCAL_BUILD_DIR/artifacts || { ls -al $LOCAL_BUILD_DIR; exit 1; }
+      - |
+        export VERSION=$(cat VERSION)
+        export ARTIFACT_NAME=cdk-helper-$VERSION.zip
+  build:
+    commands:
+      #- mkdir -p $LOCAL_BUILD_DIR/reports
+      - | # IF we allow our build script to exec /bin/bash then it fubar's /codebuild/output/tmp/env.sh ... sigh
+        # These were written to depend on Bash ... CodeBuild uses a thinner shell that is more like ksh or sysv sh ?
+        bash -c '
+
+        . scripts/find_shared_ci.sh ;
+        . scripts/ci-before_script.rc ;
+
+        copper build_layer.sh;
+        source scripts/build_layer.sh;
+
+        . scripts/build_package_wheel.sh;
+        #. scripts/build_layer_wheel.sh;
+        ls $LOCAL_DIST_DIR/*.whl || exit 11;
+
+        for whl in $(ls $LOCAL_DIST_DIR/*.whl 2>/dev/null) ; do
+          unzip -l $whl;
+        done;
+        '
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - | # This also serves to test for $LOCAL_BUILD_DIR/dist
+        ls -al $LOCAL_BUILD_DIR
+        test -d $LOCAL_BUILD_DIR/dist && ls -al $LOCAL_BUILD_DIR/dist || true
+      - |
+        ls $LOCAL_DIST_DIR/*.whl || false
+        . cicd/artifacts.rc
+        export TWINE_REPOSITORY_URL=https://artifacts-496035877404.d.codeartifact.us-east-1.amazonaws.com/pypi/pypi
+        export PIP_REPOSITORY_URL=https://aws:$CODEARTIFACT_AUTH_TOKEN@artifacts-496035877404.d.codeartifact.us-east-1.amazonaws.com/pypi/pypi/simple/
+        push_pip_artifact_all
+        get_pip_artifact cdk_helper -q $LOCAL_BUILD_DIR /tmp
+        ls -al $LOCAL_BUILD_DIR
+
+# [2020-06-26 Christo] NOT supported on amazon/codebuild-local :(
+#reports:
+#  lambdacore-pytest:
+#    files:
+#      - build/reports/junitxml.xml
+#    discard-paths: yes
+#    file-format: JunitXml # default is JunitXml
+
+artifacts:
+  files:
+    - build/dist/*.whl
+  discard-paths: yes
+  secondary-artifacts:
+    cicd_shared_artifact:
+      files:
+        - build/dist/*.whl
+      discard-paths: yes

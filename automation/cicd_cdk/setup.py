@@ -15,11 +15,13 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "cicd_cdk"},
-    packages=setuptools.find_packages(where="cicd_cdk"),
+    package_dir={"": "cicd_lib"},
+    packages=setuptools.find_packages(where="cicd_lib"),
 
     install_requires=[
-        "aws-cdk.core<2",
+        'aws-cdk.core<2',
+        'cdk-helper>=0.4.12',
+        'python-lambda>=11.7.1rev15',
     ],
 
     python_requires=">=3.6",
