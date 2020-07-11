@@ -117,12 +117,12 @@ phases:
         ls -al $LOCAL_BUILD_DIR
 
 # [2020-06-26 Christo] NOT supported on amazon/codebuild-local :(
-reports:
-  aws-sso-pytest:
-    files:
-      - build/reports/junitxml.xml
-    discard-paths: yes
-    file-format: JunitXml # default is JunitXml
+#reports:
+#  aws-sso-pytest:
+#    files:
+#      - build/reports/junitxml.xml
+#    discard-paths: yes
+#    file-format: JunitXml # default is JunitXml
 
 artifacts:
   files:
