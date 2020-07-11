@@ -14,10 +14,10 @@ export RVM_RUBY_GEMSET=ruby-2.6.6@$here
 export CI_TEMPLATES_DIR=automation/templates
 
 export VERSION=$(cat VERSION 2>/dev/null)
-export APP_ID=CDKHelper
+export APP_ID=AWSSSO
 export PACKAGE_NAME=$APP_ID-$VERSION
-export PACKAGE_DIR=cdk_helper
-export PACKAGE_DESCRIPTION='CDK Helper'
+export PACKAGE_DIR=awssso
+export PACKAGE_DESCRIPTION='AWS SSO'
 export PACKAGE_ARTIFACT_FILE=${PACKAGE_ARTIFACT_FILE:-$LOCAL_BUILD_DIR/$PACKAGE_NAME.zip}
 
 test -f /codebuild/output/tmp/env.sh && source /codebuild/output/tmp/env.sh
