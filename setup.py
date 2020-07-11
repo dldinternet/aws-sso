@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+
 from setuptools import find_packages, setup
 
 requires = [
@@ -10,8 +12,8 @@ requires = [
     'secretstorage; platform_system == "Linux"',
 ]
 
-with open('README.md', 'r') as fh:
-    long_description = fh.read()
+with open(os.path.join(os.path.dirname(__file__), "README.md")) as fp:
+    long_description = fp.read()
 
 setup_options = dict(
     name='awssso',
