@@ -48,7 +48,7 @@ class CicdStack(core_.Stack):
         self.codebuild_project_name = f'{self.product_tag}-codebuild-project'
 
         self.source_repository_name = self.product_tag
-        self.source_repository_branch = self.cicd_tags.map.get('Branch', 'develop')
+        self.source_repository_branch = self.cicd_config.config.get('source', {}).get('repo', {}).get('branch', self.cicd_tags.map.get('Branch', 'develop'))
 
         self._iam_construct()
         self._codebuild_construct()

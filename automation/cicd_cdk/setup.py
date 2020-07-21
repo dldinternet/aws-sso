@@ -20,7 +20,7 @@ setuptools.setup(
 
     install_requires=[
         'aws-cdk.core<2',
-        'cdk-helper>=0.4.12',
+        'cdk-helper>=0.4.16',
         'python-lambda>=11.7.1rev15',
     ],
 
