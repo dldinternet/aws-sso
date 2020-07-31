@@ -7,7 +7,7 @@ with open("README.md") as fp:
 
 setuptools.setup(
     name="cicd_cdk",
-    version="1.1.3rev10",
+    version="1.1.3rev11",
 
     description="A CDK Python app",
     long_description=long_description,

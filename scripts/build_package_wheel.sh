@@ -21,6 +21,4 @@ python $CI_PROJECT_DIR/setup.py clean bdist_wheel --python-tag py3 --universal -
 #set -x
 
 
-#pip install -r ../requirements-whl.txt >>$LOCAL_BUILD_DIR/pip.requirements-whl.log
-
 cd $CI_PROJECT_DIR

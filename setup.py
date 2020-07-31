@@ -17,7 +17,7 @@ with open(os.path.join(os.path.dirname(__file__), "README.md")) as fp:
 
 setup_options = dict(
     name='awssso',
-    version='1.1.3rev10',
+    version='1.1.3rev11',
     description='Command Line tool for AWS SSO Credentials',
     long_description=long_description,
     long_description_content_type='text/markdown',

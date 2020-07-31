@@ -29,7 +29,7 @@ source:
 tags:
   Owner: christo.delange@roadsync.com
   Env: DEV
-  Version: 1.1.3rev10
+  Version: 1.1.3rev11
   Application: Wheel
   Team: Development
   Product: aws-sso

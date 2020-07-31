@@ -64,7 +64,7 @@ else
   cd $LOCAL_BUILD_DIR
   . venv/bin/activate
   export PYTHONPATH=$LOCAL_BUILD_DIR/python
-  pip install -r ../requirements-whl.txt >>$LOCAL_BUILD_DIR/pip.requirements-whl.log
+  pip install -r $CI_PROJECT_DIR/requirements-whl.txt
   copper `pwd`
   copper zip $PACKAGE_ARTIFACT_FILE python
   test -f $PACKAGE_ARTIFACT_FILE? && green $PACKAGE_ARTIFACT_FILE?
